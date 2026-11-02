@@ -194,6 +194,7 @@ label.lbl { font-weight: 600; }
 .note { font-size: 13px; color: var(--muted); margin: 0; padding-left: 18px; }
 .note li + li { margin-top: 6px; }
 .linkbtn { background: none; border: 0; color: var(--teal); font-weight: 600; text-decoration: underline; padding: 8px 0; }
+
 /* Extra voor vakantie2027 */
 .nav-in { grid-template-columns: repeat(4, 1fr); }
 .base { background: linear-gradient(160deg, #0f5c63 0%, #17757b 70%, #f2b84b 160%); color: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
@@ -214,7 +215,14 @@ label.lbl { font-weight: 600; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .pin.v { background: var(--sun); border-radius: 4px; }
 .empty { text-align: center; color: var(--muted); padding: 24px 8px; }
-
+/* Foto's + officiële website */
+.photo img.sold { filter: grayscale(1); }
+a.hero-photo { text-decoration: none; }
+.btn.site { margin: 0 0 12px; }
+.btn.site small { font-weight: 400; opacity: .8; }
+.nosite { margin: 0 0 12px; }
+.pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-top: 12px; }
+.pics .photo { border-radius: 12px; overflow: hidden; }
 </style>
 </head>
 <body>
@@ -266,6 +274,9 @@ function dec(n) { return n == null ? '–' : n.toLocaleString('nl-BE', { minimum
 function hm(min) { if (min == null) return '?'; var h = Math.floor(min / 60), m = min % 60; return h ? h + ' u ' + String(m).padStart(2, '0') : m + ' min'; }
 function rit(r) { return r ? '± ' + r.km.toLocaleString('nl-BE') + ' km · ± ' + hm(r.min) : 'niet berekend'; }
 function safeUrl(u) { return /^https:\/\//i.test(u || '') ? u : null; }
+function safeImg(u) { return /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(u || '') ? u : null; }
+function fotos(p) { return (p.fotos || []).filter(function (f) { return f && safeImg(f.src); }); }
+function hostOf(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } }
 
 /* ---------- Ontgrendelen (PBKDF2-SHA256 + AES-256-GCM) ---------- */
 var envelope = null;
@@ -343,7 +354,8 @@ function priceHtml(p) {
   return euro(p.prijs) + ' <small>7 nachten*</small>';
 }
 function photo(p, big) {
-  return '<div class="photo">' + HOUSE + (p.score != null ? '<span class="bscore">' + dec(p.score) + '</span>' : '') + '<span class="num">#' + esc(p.id) + '</span>' + (big ? '' : mineBadge(p)) + '</div>';
+  var f = fotos(p)[0];
+  return '<div class="photo">' + HOUSE + (f ? '<img src="' + esc(f.src) + '" alt="' + esc(p.naam) + '"' + (p.uitverkocht ? ' class="sold"' : '') + ' loading="lazy">' : '') + (p.score != null ? '<span class="bscore">' + dec(p.score) + '</span>' : '') + '<span class="num">#' + esc(p.id) + '</span>' + (big ? '' : mineBadge(p)) + '</div>';
 }
 function mineBadge(p) { var s = vote(ME, p.id).s; return typeof s === 'number' ? '<span class="mine" style="left:auto">' + s + '</span>' : ''; }
 function nav(tab) { document.querySelectorAll('.nav a').forEach(function (a) { a.classList.toggle('on', a.dataset.tab === tab); }); }
@@ -395,7 +407,11 @@ function detailView(id) {
   var p = P(id); if (!p) { location.hash = '#/lijst'; return; }
   var link = safeUrl(p.link), mine = vote(ME, p.id), other = VOTERS.filter(function (w) { return w !== ME; })[0], ov = vote(other, p.id);
   var h = '<a class="back" href="#/lijst">← Alle plekken</a><div class="narrow">';
-  h += '<div class="hero-photo">' + photo(p, true) + '</div><div class="hero"><h2>' + esc(p.naam) + '</h2><div class="loc">' + esc(p.plaats) + ' · ' + esc(p.regio) + (p.sterren ? ' · ' + '★'.repeat(p.sterren) : '') + '</div></div>';
+  var web = safeUrl(p.web), fs = fotos(p);
+  h += web ? '<a class="hero-photo" href="' + esc(web) + '" target="_blank" rel="noopener noreferrer" title="Officiële website">' + photo(p, true) + '</a>' : '<div class="hero-photo">' + photo(p, true) + '</div>';
+  if (web) h += '<a class="btn ghost site" href="' + esc(web) + '" target="_blank" rel="noopener noreferrer">Officiële website ↗ <small>' + esc(hostOf(web)) + '</small></a>';
+  else h += '<p class="legend nosite">Geen officiële website gevonden; enkel via Booking.com.</p>';
+  h += '<div class="hero"><h2>' + esc(p.naam) + '</h2><div class="loc">' + esc(p.plaats) + ' · ' + esc(p.regio) + (p.sterren ? ' · ' + '★'.repeat(p.sterren) : '') + '</div></div>';
   if (p.uitverkocht) h += '<div class="warn" style="margin-top:12px"><strong>Niet beschikbaar</strong>Uitverkocht op Booking voor 17–24 juli 2027.</div>';
   h += '<div class="facts" style="margin-top:12px">' +
     '<div class="fact"><b>' + (p.uitverkocht ? '–' : (p.prijs != null ? esc(euro(p.prijs)) : '?')) + '</b><span>7 nachten*</span></div>' +
@@ -408,6 +424,8 @@ function detailView(id) {
     (p.strand ? '<dt>Afstand strand</dt><dd>' + esc(p.strand) + '</dd>' : '') +
     (p.opm ? '<dt>Opmerkingen (sheet)</dt><dd>' + esc(p.opm) + '</dd>' : '') +
     '<dt>Ligging voor de ritberekening</dt><dd>' + esc(p.geo ? p.geo.note : 'onbekend') + '</dd></dl>' +
+    (fs.length > 1 ? '<div class="pics">' + fs.slice(1).map(function (f) { return '<div class="photo"><img src="' + esc(f.src) + '" alt="' + esc(p.naam) + '"' + (p.uitverkocht ? ' class="sold"' : '') + ' loading="lazy"></div>'; }).join('') + '</div>' : '') +
+    (fs.length ? '<p class="legend">Foto\'s: ' + fs.map(function (f) { return esc(f.label || hostOf(f.bron)); }).filter(function (x, i, a) { return x && a.indexOf(x) === i; }).join(', ') + '.</p>' : '') +
     '<p class="legend">* Prijs uit de sheet; mogelijk voor 2 volwassenen, Ellie (6) nog toevoegen. Ritten zijn benaderingen (OpenStreetMap/OSRM, zonder verkeer of pauzes). ? = niet ingevuld in de sheet.</p></div>';
   h += '<div class="section score"><h3>Jouw cijfer, ' + esc(ME) + ' <span class="status" id="st"></span></h3><div class="ten">' +
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function (n) { return '<button type="button" data-s="' + n + '"' + (mine.s === n ? ' class="on"' : '') + '>' + n + '</button>'; }).join('') +
@@ -479,12 +497,12 @@ function mapView() {
 /* ---------- Villa & info ---------- */
 function villaView() {
   nav('villa');
-  var v = DATA.villa, fotoUrl = safeUrl(v.foto);
-  var h = '<div class="narrow"><div class="hero-photo"><div class="photo">' + HOUSE + (fotoUrl ? '<img src="' + esc(fotoUrl) + '" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">' : '') + '</div></div>';
+  var v = DATA.villa, fotoUrl = safeUrl(v.foto), CASA = 'https://www.casamundo.nl/rental/2c1871cf2c1f6850';
+  var h = '<div class="narrow"><a class="hero-photo" id="villa-foto" href="' + CASA + '" target="_blank" rel="noopener noreferrer" title="Bekijk de villa op Casamundo"><div class="photo">' + HOUSE + (fotoUrl ? '<img src="' + esc(fotoUrl) + '" alt="Villa Hyères op Casamundo" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">' : '') + '<span class="more">Casamundo ↗</span></div></a>';
   h += '<div class="hero"><h2>' + esc(v.naam) + '</h2><div class="loc">' + esc(v.ligging) + ' · 10–17 juli 2027 met de groep</div></div>';
   h += '<p class="verdict">' + esc(v.score) + '. Vanaf hier vertrekken jullie op 17 juli naar jullie eigen week.</p>';
   h += '<div class="facts"><div class="fact"><b>17 bedden</b><span>Max. 18 gasten · 5 badkamers</span></div><div class="fact"><b>250 m²</b><span>Terras met privézwembad</span></div><div class="fact"><b>' + esc(rit(v.thuis)) + '</b><span>Rit vanaf thuis</span></div><div class="fact"><b>Airco</b><span>Parking ' + esc(v.parking) + '</span></div></div>';
-  h += '<a class="btn" href="' + esc(safeUrl(v.link)) + '" target="_blank" rel="noopener noreferrer">Advertentie op Casamundo ↗</a>';
+  h += '<a class="btn" href="' + CASA + '" target="_blank" rel="noopener noreferrer">Advertentie op Casamundo ↗</a>';
   h += '<div class="section" style="margin-top:12px"><h3>Over de villa</h3><dl><dt>Slapen</dt><dd>' + esc(v.slapen) + '</dd><dt>Zwembad</dt><dd>' + esc(v.zwembad) + '</dd><dt>Prijs</dt><dd>' + esc(v.prijs) + '</dd><dt>Ligging</dt><dd>' + esc(v.ligging_detail) + '</dd></dl></div>';
   h += '<div class="section"><h3>Goed om te weten</h3><ul class="note">' +
     '<li><b>Thuis</b> = ' + esc(DATA.thuis.label) + '. ' + (DATA.thuis.aanname ? 'Er was geen adres bekend; de ritten vanaf thuis gaan uit van Oudenaarde.' : '') + '</li>' +
