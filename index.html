@@ -227,6 +227,10 @@ a.hero-photo { text-decoration: none; }
 .rnote b { color: var(--teal); }
 .rnote.sheet { background: var(--amber-soft); }
 
+.btn.booking { margin: 0 0 14px; padding: 16px 18px; font-size: 18px; font-weight: 800; }
+.offsite { margin: 14px 2px 4px; font-size: 13px; color: var(--muted); }
+.offsite a { color: var(--muted); }
+
 </style>
 </head>
 <body>
@@ -412,9 +416,8 @@ function detailView(id) {
   var link = safeUrl(p.link), mine = vote(ME, p.id), other = VOTERS.filter(function (w) { return w !== ME; })[0], ov = vote(other, p.id);
   var h = '<a class="back" href="#/lijst">← Alle plekken</a><div class="narrow">';
   var web = safeUrl(p.web), fs = fotos(p);
-  h += web ? '<a class="hero-photo" href="' + esc(web) + '" target="_blank" rel="noopener noreferrer" title="Officiële website">' + photo(p, true) + '</a>' : '<div class="hero-photo">' + photo(p, true) + '</div>';
-  if (web) h += '<a class="btn ghost site" href="' + esc(web) + '" target="_blank" rel="noopener noreferrer">Officiële website ↗ <small>' + esc(hostOf(web)) + '</small></a>';
-  else h += '<p class="legend nosite">Geen officiële website gevonden; enkel via Booking.com.</p>';
+  h += link ? '<a class="hero-photo" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" title="Bekijk op Booking.com">' + photo(p, true) + '</a>' : '<div class="hero-photo">' + photo(p, true) + '</div>';
+  if (link) h += '<a class="btn booking" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">Bekijk op Booking.com ↗</a>';
   h += '<div class="hero"><h2>' + esc(p.naam) + '</h2><div class="loc">' + esc(p.plaats) + ' · ' + esc(p.regio) + (p.sterren ? ' · ' + '★'.repeat(p.sterren) : '') + '</div></div>';
   if (p.uitverkocht) h += '<div class="warn" style="margin-top:12px"><strong>Niet beschikbaar</strong>Uitverkocht op Booking voor 17–24 juli 2027.</div>';
   h += '<div class="facts" style="margin-top:12px">' +
@@ -422,7 +425,6 @@ function detailView(id) {
     '<div class="fact"><b>' + dec(p.score) + '</b><span>Booking · ' + (p.reviews != null ? esc(p.reviews) + ' reviews' : '? reviews') + '</span></div>' +
     '<div class="fact"><b>' + esc(rit(p.hyeres)) + '</b><span>Rit vanaf Villa Hyères</span></div>' +
     '<div class="fact"><b>' + esc(rit(p.thuis)) + '</b><span>Rit vanaf thuis (' + esc(DATA.thuis.label) + ')</span></div></div>';
-  if (link) h += '<a class="btn" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">Bekijk op Booking.com ↗</a>';
   h += '<div class="section" style="margin-top:12px"><h3>Details</h3><div class="chips">' + yn(p.zwembad, 'Zwembad') + yn(p.annuleren, 'Gratis annuleren') + yn(p.ontbijt, 'Ontbijt') + yn(p.parasols, 'Parasols/schaduw') + '</div><dl>' +
     (p.kamer ? '<dt>Kamertype</dt><dd>' + esc(p.kamer) + '</dd>' : '') +
     (p.strand ? '<dt>Afstand strand</dt><dd>' + esc(p.strand) + '</dd>' : '') +
@@ -431,6 +433,7 @@ function detailView(id) {
     (fs.length > 1 ? '<div class="pics">' + fs.slice(1).map(function (f) { return '<div class="photo"><img src="' + esc(f.src) + '" alt="' + esc(p.naam) + '"' + (p.uitverkocht ? ' class="sold"' : '') + ' loading="lazy"></div>'; }).join('') + '</div>' : '') +
     (fs.length ? '<p class="legend">Foto\'s: ' + fs.map(function (f) { return esc(f.label || hostOf(f.bron)); }).filter(function (x, i, a) { return x && a.indexOf(x) === i; }).join(', ') + '.</p>' : '') +
     '<p class="legend">* Prijs uit de sheet; mogelijk voor 2 volwassenen, Ellie (6) nog toevoegen. Ritten zijn benaderingen (OpenStreetMap/OSRM, zonder verkeer of pauzes). ? = niet ingevuld in de sheet.</p></div>';
+  h += web ? '<p class="offsite">Officiële website: <a href="' + esc(web) + '" target="_blank" rel="noopener noreferrer">' + esc(hostOf(web)) + ' ↗</a></p>' : '<p class="offsite">Geen officiële website gevonden.</p>';
   h += '<div class="section score"><h3>Jouw cijfer, ' + esc(ME) + ' <span class="status" id="st"></span></h3><div class="ten">' +
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function (n) { return '<button type="button" data-s="' + n + '"' + (mine.s === n ? ' class="on"' : '') + '>' + n + '</button>'; }).join('') +
     '</div><div class="scale"><span>Niks voor ons</span><span>Topper</span></div><label class="lbl" for="cm">Notitie</label><textarea class="field" id="cm" maxlength="600" placeholder="Wat vind je ervan?">' + esc(mine.c || '') + '</textarea>' +
