@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0f5c63">
+<title>Familieweek juli 2027</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E☀️%3C/text%3E%3C/svg%3E">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #faf6ef; --card: #ffffff; --ink: #1f2a2c; --muted: #5f6b6d; --line: #e6dfd3;
+  --teal: #0f5c63; --teal-soft: #e3f0f0; --terra: #c8553d; --sun: #f2b84b;
+  --red: #b42318; --red-soft: #fdecea; --green: #1e7a46; --green-soft: #e4f4ea;
+  --amber: #8a5a00; --amber-soft: #fdf1d6; --grey-soft: #efece6;
+  --radius: 16px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.2; margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: var(--teal); }
+.wrap { max-width: 960px; margin: 0 auto; padding: 16px 16px 104px; }
+.narrow { max-width: 680px; margin: 0 auto; }
+[hidden] { display: none !important; }
+
+/* Slot */
+.gate { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px;
+  background: linear-gradient(160deg, #0f5c63 0%, #17757b 55%, #f2b84b 140%); }
+.gate-card { background: var(--card); border-radius: 24px; padding: 28px 24px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+.gate-card h1 { font-size: 26px; margin-bottom: 6px; }
+.gate-card p { color: var(--muted); margin: 0 0 18px; }
+.field { width: 100%; padding: 14px; border: 2px solid var(--line); border-radius: 12px; font: inherit; background: #fff; color: var(--ink); }
+.field:focus { outline: none; border-color: var(--teal); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 18px; border: 0; border-radius: 12px;
+  background: var(--teal); color: #fff; font-weight: 600; text-decoration: none; min-height: 50px; }
+.btn:disabled { opacity: .6; }
+.btn.ghost { background: var(--teal-soft); color: var(--teal); }
+.err { color: var(--red); font-weight: 600; margin: 10px 0 0; min-height: 24px; }
+.names { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.names button { padding: 16px 8px; border: 2px solid var(--line); border-radius: 12px; background: #fff; font-weight: 600; min-height: 56px; }
+.names button:active { border-color: var(--teal); background: var(--teal-soft); }
+
+/* Kop en navigatie */
+.top { position: sticky; top: 0; z-index: 5; background: var(--teal); color: #fff; }
+.top-in { max-width: 960px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.top h1 { font-size: 20px; }
+.top small { display: block; opacity: .85; font: 12px/1.3 system-ui, sans-serif; margin-top: 2px; }
+.me { background: rgba(255,255,255,.16); border: 0; color: #fff; border-radius: 999px; padding: 8px 14px; font-weight: 600; white-space: nowrap; min-height: 40px; }
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: #fff; border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
+.nav-in { max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+#map { height: 62vh; min-height: 360px; border-radius: var(--radius); border: 1px solid var(--line); isolation: isolate; background: #dfe9ea; margin-bottom: 12px; }
+.pin { display: block; width: 22px; height: 22px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,.45); background: #8a8a8a; }
+.pin.g { background: var(--green); } .pin.m { background: #e0a100; } .pin.s { background: var(--red); }
+.pin.home { background: var(--teal); border-radius: 4px; }
+.leaflet-tooltip.lbl-tip { font: 700 12px system-ui, sans-serif; padding: 2px 6px; }
+.pop b { font: 700 15px Georgia, serif; }
+.pop a { font-weight: 700; }
+.keys { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.keys span { display: inline-flex; align-items: center; gap: 6px; }
+.keys .pin { width: 14px; height: 14px; border-width: 2px; }
+.dist { display: flex; justify-content: space-between; gap: 12px; align-items: center; text-decoration: none; color: inherit; padding: 10px 0; border-top: 1px solid var(--line); }
+.dist:first-of-type { border-top: 0; }
+.dist b { display: flex; align-items: center; gap: 8px; }
+.dist span { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.nav a { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 9px 4px 10px; text-decoration: none; color: var(--muted); font-size: 12px; font-weight: 600; }
+.nav a svg { width: 24px; height: 24px; }
+.nav a.on { color: var(--teal); }
+.banner { background: var(--sun); color: #3d2c00; padding: 8px 16px; text-align: center; font-size: 13px; font-weight: 600; }
+.intro { color: var(--muted); margin: 4px 0 16px; }
+
+/* Raster met villa's */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 700px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } }
+.tile { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-decoration: none; color: inherit; }
+.tile:active { transform: scale(.99); }
+.photo { position: relative; aspect-ratio: 4 / 3; background: linear-gradient(135deg, #cfe3e3, #f3e3c0); display: grid; place-items: center; color: var(--teal); }
+.photo svg { width: 36%; height: 36%; opacity: .35; }
+.photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.photo .chip { position: absolute; left: 8px; top: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.photo .mine { position: absolute; right: 8px; bottom: 8px; background: var(--teal); color: #fff; border-radius: 999px; padding: 3px 10px; font-weight: 700; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.tile-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.tile h2 { font-size: 16px; }
+.loc { color: var(--muted); font-size: 13px; }
+.tile .price { margin-top: auto; padding-top: 8px; font-weight: 700; font-size: 16px; }
+.tile .price small { font-weight: 500; color: var(--muted); font-size: 12px; }
+/* Goud, zilver en brons voor de top 3 */
+.tile.goud { border: 3px solid #d4a017; box-shadow: 0 0 0 1px #f6e3a1 inset, 0 4px 14px rgba(212,160,23,.35); }
+.tile.zilver { border: 3px solid #a7a9ac; box-shadow: 0 0 0 1px #e6e7e8 inset, 0 4px 14px rgba(140,140,140,.3); }
+.tile.brons { border: 3px solid #b87333; box-shadow: 0 0 0 1px #e9c7a8 inset, 0 4px 14px rgba(184,115,51,.3); }
+.medal { position: absolute; right: 8px; top: 8px; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 700 15px Georgia, serif; color: #fff; border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,.4); }
+.medal.goud { background: linear-gradient(145deg, #f4d35e, #c99a12); color: #3d2c00; }
+.medal.zilver { background: linear-gradient(145deg, #e3e4e6, #9a9c9f); color: #2a2a2a; }
+.medal.brons { background: linear-gradient(145deg, #d9915a, #9c5a22); }
+.lowbox { margin-top: 16px; }
+.lowbox > summary { list-style: none; text-align: center; }
+.lowbox > summary::-webkit-details-marker { display: none; }
+.tile .price.over { color: var(--red); }
+.tile .price.over small { color: var(--red); }
+.todo { color: var(--terra); font-size: 13px; font-weight: 600; }
+.chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 700; background: var(--grey-soft); color: var(--ink); }
+.chip.ok { background: var(--green-soft); color: var(--green); }
+.chip.deels { background: var(--amber-soft); color: var(--amber); }
+.chip.nee, .chip.onbekend { background: var(--red-soft); color: var(--red); }
+
+/* Fiche */
+.back { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 600; padding: 8px 0 12px; }
+.hero-photo { display: block; border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+.photo .more { position: absolute; right: 10px; bottom: 10px; background: rgba(0,0,0,.7); color: #fff; border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 14px; }
+.hero-photo .photo { aspect-ratio: 16 / 10; }
+.hero h2 { font-size: 25px; }
+.verdict { font-size: 17px; margin: 10px 0 14px; }
+.warn { background: var(--red-soft); border: 1px solid #f4c7c1; border-left: 5px solid var(--red); color: var(--red); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-weight: 600; }
+.warn strong { display: block; text-transform: uppercase; font-size: 12px; letter-spacing: .04em; margin-bottom: 4px; }
+.warn ul { margin: 0; padding-left: 18px; }
+.warn li + li { margin-top: 4px; }
+.section { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.section h3 { font-size: 17px; margin-bottom: 10px; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.fact { background: var(--teal-soft); border-radius: 12px; padding: 10px 12px; }
+.fact b { display: block; font: 700 16px/1.25 Georgia, serif; color: var(--teal); }
+.fact span { font-size: 12px; color: var(--muted); font-weight: 600; }
+.weeks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+@media (min-width: 560px) { .weeks { grid-template-columns: repeat(4, 1fr); } }
+.week { border-radius: 10px; padding: 8px 4px; font-size: 12px; font-weight: 700; text-align: center; background: var(--grey-soft); color: var(--muted); }
+.week small { display: block; font-weight: 600; font-size: 11px; }
+.week.vrij { background: var(--green-soft); color: var(--green); }
+.week.nb { background: var(--red-soft); color: var(--red); }
+.week.key { outline: 2px solid currentColor; outline-offset: -2px; }
+.month { font: 700 12px system-ui, sans-serif; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 12px 0 6px; }
+.wks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.wk { border-radius: 10px; padding: 6px 4px; text-align: center; font-size: 13px; font-weight: 700; background: var(--grey-soft); color: var(--muted); }
+.wk small { display: block; font-size: 11px; font-weight: 600; }
+.wk.vrij { background: var(--green-soft); color: var(--green); }
+.wk.nb { background: var(--red-soft); color: var(--red); }
+.wk.alt, .week.alt { background: var(--amber-soft); color: var(--amber); }
+.aspect { display: grid; grid-template-columns: 14px 1fr; gap: 4px 10px; padding: 11px 0; border-top: 1px solid var(--line); }
+.aspect:first-of-type { border-top: 0; padding-top: 0; }
+.dot { width: 14px; height: 14px; border-radius: 50%; margin-top: 4px; background: #b9b4aa; }
+.dot.g { background: var(--green); } .dot.m { background: #e0a100; } .dot.s { background: var(--red); }
+.aspect b { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.aspect b em { font: 700 12px system-ui, sans-serif; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); white-space: nowrap; }
+.aspect b em.g { color: var(--green); } .aspect b em.m { color: var(--amber); } .aspect b em.s { color: var(--red); }
+.aspect p { grid-column: 2; margin: 0; font-size: 15px; }
+.legend { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+dl { margin: 0; }
+dt { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; margin-top: 12px; }
+dd { margin: 2px 0 0; }
+.said { font-style: italic; color: var(--muted); }
+details > summary { cursor: pointer; font-weight: 600; color: var(--teal); padding: 2px 0; }
+
+/* Cijfer geven */
+.score { border: 2px solid var(--teal); }
+.score h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.status { font: 600 13px system-ui, sans-serif; color: var(--muted); }
+.status.ok { color: var(--green); }
+.status.bad { color: var(--red); }
+.ten { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.ten button { height: 52px; border-radius: 12px; border: 2px solid var(--line); background: #fff; font-weight: 700; font-size: 18px; }
+.ten button.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin: 6px 2px 12px; }
+textarea.field { min-height: 84px; resize: vertical; margin-top: 6px; }
+label.lbl { font-weight: 600; }
+.comment { border-top: 1px solid var(--line); padding: 10px 0 0; margin-top: 10px; }
+.comment:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.comment b { color: var(--teal); }
+
+/* Rangschikking en opvolging */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+.rank { display: flex; gap: 12px; align-items: center; }
+.pos { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--teal); color: #fff; display: grid; place-items: center; font: 700 18px Georgia, serif; }
+.pos.p1 { background: var(--sun); color: #3d2c00; }
+.pos.none { background: var(--grey-soft); color: var(--muted); }
+.thumb { flex: none; width: 56px; height: 56px; border-radius: 10px; overflow: hidden; }
+.thumb .photo { aspect-ratio: 1; }
+.rank-main { flex: 1; min-width: 0; }
+.rank-main h2 { font-size: 17px; }
+.rank-main a { color: inherit; text-decoration: none; }
+.total { font: 700 24px Georgia, serif; white-space: nowrap; }
+.total small { font: 500 12px system-ui, sans-serif; color: var(--muted); }
+.bar { height: 8px; background: var(--grey-soft); border-radius: 999px; overflow: hidden; margin-top: 10px; }
+.bar i { display: block; height: 100%; background: var(--teal); border-radius: 999px; }
+.given { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.who { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.who b { font-size: 17px; }
+.count { font-weight: 700; white-space: nowrap; }
+.count.full { color: var(--green); }
+.count.zero { color: var(--red); }
+.missing { font-size: 14px; color: var(--muted); margin-top: 8px; }
+.note { font-size: 13px; color: var(--muted); margin: 0; padding-left: 18px; }
+.note li + li { margin-top: 6px; }
+.linkbtn { background: none; border: 0; color: var(--teal); font-weight: 600; text-decoration: underline; padding: 8px 0; }
+/* Extra voor vakantie2027 */
+.nav-in { grid-template-columns: repeat(4, 1fr); }
+.base { background: linear-gradient(160deg, #0f5c63 0%, #17757b 70%, #f2b84b 160%); color: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+.base h2 { font-size: 20px; }
+.base p { margin: 6px 0 0; font-size: 14px; opacity: .95; }
+.base a { color: #fff; font-weight: 700; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; align-items: center; }
+.tools select { padding: 10px 12px; border: 2px solid var(--line); border-radius: 12px; font: inherit; background: #fff; color: var(--ink); min-height: 44px; }
+.flt { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 12px; font-weight: 600; font-size: 14px; min-height: 40px; }
+.flt.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+.drive { display: flex; flex-direction: column; gap: 1px; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.drive b { color: var(--ink); font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.photo .num { position: absolute; left: 8px; bottom: 8px; background: rgba(255,255,255,.9); color: var(--teal); border-radius: 999px; padding: 2px 9px; font-weight: 700; font-size: 13px; }
+.photo .bscore { position: absolute; right: 8px; top: 8px; background: #003580; color: #fff; border-radius: 8px 8px 8px 0; padding: 3px 7px; font-weight: 700; font-size: 14px; }
+.tile.sold { opacity: .6; }
+.assume { background: var(--amber-soft); color: var(--amber); border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 600; margin: 0 0 12px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pin.v { background: var(--sun); border-radius: 4px; }
+.empty { text-align: center; color: var(--muted); padding: 24px 8px; }
+
+</style>
+</head>
+<body>
+<div class="gate" id="gate" hidden>
+  <form class="gate-card" id="gateForm" autocomplete="off">
+    <h1>Familieweek juli 2027</h1>
+    <p>Privé. Geef het wachtwoord in om de shortlist te openen.</p>
+    <input class="field" id="code" type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false" placeholder="Wachtwoord" aria-label="Wachtwoord">
+    <label style="display:flex;gap:8px;align-items:center;margin:12px 0;font-size:14px"><input type="checkbox" id="remember" checked> Onthoud op dit toestel</label>
+    <button class="btn" id="go" type="submit">Openen</button>
+    <p class="err" id="err" role="alert"></p>
+  </form>
+</div>
+<div class="gate" id="who" hidden>
+  <div class="gate-card">
+    <h1>Wie ben jij?</h1>
+    <p>Je cijfers worden enkel op dit toestel bewaard.</p>
+    <div class="names" id="names"></div>
+  </div>
+</div>
+<div id="app" hidden>
+  <header class="top"><div class="top-in">
+    <div><h1>Familieweek 17–24 juli</h1><small>Na Villa Hyères · met z'n drietjes</small></div>
+    <button class="me" id="me" type="button"></button>
+  </div></header>
+  <main class="wrap" id="view"></main>
+  <nav class="nav"><div class="nav-in">
+    <a href="#/lijst" data-tab="lijst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Plekken</a>
+    <a href="#/kaart" data-tab="kaart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>Kaart</a>
+    <a href="#/rang" data-tab="rang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Rangschikking</a>
+    <a href="#/villa" data-tab="villa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Villa & info</a>
+  </div></nav>
+</div>
+<script>
+(function () {
+'use strict';
+var VOTERS = ['Scott', 'Kimberly'];
+var DATA = null, ME = null, KEY = null;
+var HOUSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
+var view = { sort: 'score', f: {} };
+
+function $(s) { return document.querySelector(s); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} return null; }
+function b64(s) { var bin = atob(s), a = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; }
+function toB64(a) { var s = ''; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+function euro(n) { return n == null ? null : '€ ' + Math.round(n).toLocaleString('nl-BE'); }
+function dec(n) { return n == null ? '–' : n.toLocaleString('nl-BE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+function hm(min) { if (min == null) return '?'; var h = Math.floor(min / 60), m = min % 60; return h ? h + ' u ' + String(m).padStart(2, '0') : m + ' min'; }
+function rit(r) { return r ? '± ' + r.km.toLocaleString('nl-BE') + ' km · ± ' + hm(r.min) : 'niet berekend'; }
+function safeUrl(u) { return /^https:\/\//i.test(u || '') ? u : null; }
+
+/* ---------- Ontgrendelen (PBKDF2-SHA256 + AES-256-GCM) ---------- */
+var envelope = null;
+async function getEnv() {
+  if (!envelope) { var r = await fetch('data.enc.json', { cache: 'no-store' }); if (!r.ok) throw new Error('net'); envelope = await r.json(); }
+  return envelope;
+}
+async function deriveBits(pw, env) {
+  var km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw.trim().toLowerCase()), 'PBKDF2', false, ['deriveBits']);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: b64(env.salt), iterations: env.iter }, km, 256));
+}
+async function openWith(bits) {
+  var env = await getEnv();
+  var k = await crypto.subtle.importKey('raw', bits, { name: 'AES-GCM' }, false, ['decrypt']);
+  var plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(env.iv) }, k, b64(env.ct));
+  DATA = JSON.parse(new TextDecoder().decode(plain));
+}
+async function boot() {
+  var m = location.hash.match(/^#c=(.+)$/);
+  if (m) history.replaceState(null, '', location.pathname + location.search);
+  try {
+    if (m) { var env = await getEnv(); var bits = await deriveBits(decodeURIComponent(m[1]), env); await openWith(bits); ls('vk27.key', toB64(bits)); return enter(); }
+    var saved = ls('vk27.key');
+    if (saved) { await openWith(b64(saved)); return enter(); }
+  } catch (e) { ls('vk27.key', null); }
+  $('#gate').hidden = false; $('#code').focus();
+}
+$('#gateForm').addEventListener('submit', async function (ev) {
+  ev.preventDefault();
+  var pw = $('#code').value; if (!pw.trim()) return;
+  $('#go').disabled = true; $('#go').textContent = 'Even geduld…'; $('#err').textContent = '';
+  try {
+    var env = await getEnv(); var bits = await deriveBits(pw, env); await openWith(bits);
+    if ($('#remember').checked) ls('vk27.key', toB64(bits));
+    $('#gate').hidden = true; $('#code').value = ''; enter();
+  } catch (e) {
+    $('#err').textContent = e && e.message === 'net' ? 'Kon de gegevens niet laden. Controleer je verbinding.' : 'Dat wachtwoord klopt niet.';
+  }
+  $('#go').disabled = false; $('#go').textContent = 'Openen';
+});
+
+/* ---------- Wie ben jij ---------- */
+function enter() {
+  ME = ls('vk27.me');
+  if (VOTERS.indexOf(ME) < 0) return pickName();
+  $('#who').hidden = true; $('#app').hidden = false; $('#me').textContent = ME + ' ▾'; route();
+}
+function pickName() {
+  $('#app').hidden = true; $('#who').hidden = false;
+  $('#names').innerHTML = VOTERS.map(function (n) { return '<button type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('');
+}
+$('#names').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; ls('vk27.me', b.dataset.n); enter(); });
+$('#me').addEventListener('click', function () { if (confirm('Van naam wisselen? Je cijfers blijven bewaard.')) { ls('vk27.me', null); pickName(); } });
+
+/* ---------- Cijfers (lokaal) ---------- */
+function loadVotes() { try { return JSON.parse(ls('vk27.votes') || '{}'); } catch (e) { return {}; } }
+function saveVotes(v) { ls('vk27.votes', JSON.stringify(v)); }
+function vote(who, id) { var v = loadVotes(); return (v[who] || {})[id] || {}; }
+function setVote(who, id, patch) { var v = loadVotes(); v[who] = v[who] || {}; var o = v[who][id] || {}; for (var k in patch) o[k] = patch[k]; o.t = Date.now(); v[who][id] = o; saveVotes(v); }
+function combined(id) {
+  var s = VOTERS.map(function (w) { return vote(w, id).s; }).filter(function (x) { return typeof x === 'number'; });
+  return { n: s.length, avg: s.length ? s.reduce(function (a, b) { return a + b; }, 0) / s.length : null, sum: s.reduce(function (a, b) { return a + b; }, 0) };
+}
+
+/* ---------- Helpers ---------- */
+function P(id) { return DATA.plekken.filter(function (p) { return p.id === id; })[0]; }
+function yn(v, label) {
+  if (v === true) return '<span class="chip ok">✓ ' + label + '</span>';
+  if (v === false) return '<span class="chip nee">✗ ' + label + '</span>';
+  return '<span class="chip">? ' + label + '</span>';
+}
+function priceHtml(p) {
+  if (p.uitverkocht) return '<span class="todo">Uitverkocht 17–24 juli</span>';
+  if (p.prijs == null) { var m = (p.opm || '').match(/ca\.\s*€\s?([\d.]+)/); return '<span class="todo">Prijs onbekend' + (m ? ' (eerder ± € ' + esc(m[1]) + ')' : '') + '</span>'; }
+  return euro(p.prijs) + ' <small>7 nachten*</small>';
+}
+function photo(p, big) {
+  return '<div class="photo">' + HOUSE + (p.score != null ? '<span class="bscore">' + dec(p.score) + '</span>' : '') + '<span class="num">#' + esc(p.id) + '</span>' + (big ? '' : mineBadge(p)) + '</div>';
+}
+function mineBadge(p) { var s = vote(ME, p.id).s; return typeof s === 'number' ? '<span class="mine" style="left:auto">' + s + '</span>' : ''; }
+function nav(tab) { document.querySelectorAll('.nav a').forEach(function (a) { a.classList.toggle('on', a.dataset.tab === tab); }); }
+function sortVal(p, k) {
+  switch (k) {
+    case 'prijs': return p.uitverkocht || p.prijs == null ? 1e9 : p.prijs;
+    case 'hyeres': return p.hyeres ? p.hyeres.min : 1e9;
+    case 'thuis': return p.thuis ? p.thuis.min : 1e9;
+    case 'mine': var s = vote(ME, p.id).s; return typeof s === 'number' ? -s : 99;
+    case 'samen': var c = combined(p.id); return c.avg == null ? 99 : -(c.avg + c.n / 100);
+    default: return -(p.score || 0);
+  }
+}
+
+/* ---------- Lijst ---------- */
+var FILTERS = [['zwembad', 'Zwembad'], ['annuleren', 'Gratis annuleren'], ['ontbijt', 'Ontbijt'], ['beschikbaar', 'Met prijs']];
+function listView() {
+  nav('lijst');
+  var ps = DATA.plekken.filter(function (p) {
+    if (view.f.zwembad && p.zwembad !== true) return false;
+    if (view.f.annuleren && p.annuleren !== true) return false;
+    if (view.f.ontbijt && p.ontbijt !== true) return false;
+    if (view.f.beschikbaar && (p.uitverkocht || p.prijs == null)) return false;
+    return true;
+  }).sort(function (a, b) { return sortVal(a, view.sort) - sortVal(b, view.sort); });
+  var v = DATA.villa;
+  var h = '<div class="base"><h2>☀️ Basis: ' + esc(v.naam) + ' · 10–17 juli</h2><p>Daarna 17–24 juli met z\'n drietjes (' + esc(DATA.week.wie) + '). Ritten hieronder zijn vanaf Hyères en vanaf thuis. <a href="#/villa">Meer over de villa →</a></p></div>';
+  h += '<div class="tools"><label class="lbl" for="sort">Sorteer</label><select id="sort">' +
+    [['score', 'Booking-score'], ['prijs', 'Prijs (laag–hoog)'], ['hyeres', 'Rit vanaf Hyères'], ['thuis', 'Rit vanaf thuis'], ['mine', 'Mijn cijfer'], ['samen', 'Ons cijfer samen']]
+      .map(function (o) { return '<option value="' + o[0] + '"' + (view.sort === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div>';
+  h += '<div class="tools">' + FILTERS.map(function (f) { return '<button type="button" class="flt' + (view.f[f[0]] ? ' on' : '') + '" data-f="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</div>';
+  h += '<p class="intro">' + ps.length + ' van ' + DATA.plekken.length + ' plekken. * Prijs mogelijk voor 2 volwassenen; kind nog toevoegen.</p>';
+  if (!ps.length) h += '<p class="empty">Geen plekken met deze filters.</p>';
+  h += '<div class="grid">' + ps.map(function (p) {
+    return '<a class="tile' + (p.uitverkocht ? ' sold' : '') + '" href="#/plek/' + encodeURIComponent(p.id) + '">' + photo(p) +
+      '<div class="tile-body"><h2>' + esc(p.naam) + '</h2><span class="loc">' + esc(p.plaats) + ' · ' + esc(p.regio) + '</span>' +
+      '<div class="drive"><span>Hyères: <b>' + esc(rit(p.hyeres)) + '</b></span><span>Thuis: <b>' + esc(rit(p.thuis)) + '</b></span></div>' +
+      '<div class="chips">' + (p.zwembad ? '<span class="chip ok">Zwembad</span>' : '') + (p.annuleren ? '<span class="chip ok">Gratis annuleren</span>' : '') + (p.ontbijt ? '<span class="chip ok">Ontbijt</span>' : '') + '</div>' +
+      '<div class="price">' + priceHtml(p) + '</div></div></a>';
+  }).join('') + '</div>';
+  $('#view').innerHTML = h;
+  $('#sort').addEventListener('change', function (e) { view.sort = e.target.value; listView(); });
+  document.querySelectorAll('.flt').forEach(function (b) { b.addEventListener('click', function () { view.f[b.dataset.f] = !view.f[b.dataset.f]; listView(); }); });
+}
+
+/* ---------- Fiche ---------- */
+function detailView(id) {
+  nav('lijst');
+  var p = P(id); if (!p) { location.hash = '#/lijst'; return; }
+  var link = safeUrl(p.link), mine = vote(ME, p.id), other = VOTERS.filter(function (w) { return w !== ME; })[0], ov = vote(other, p.id);
+  var h = '<a class="back" href="#/lijst">← Alle plekken</a><div class="narrow">';
+  h += '<div class="hero-photo">' + photo(p, true) + '</div><div class="hero"><h2>' + esc(p.naam) + '</h2><div class="loc">' + esc(p.plaats) + ' · ' + esc(p.regio) + (p.sterren ? ' · ' + '★'.repeat(p.sterren) : '') + '</div></div>';
+  if (p.uitverkocht) h += '<div class="warn" style="margin-top:12px"><strong>Niet beschikbaar</strong>Uitverkocht op Booking voor 17–24 juli 2027.</div>';
+  h += '<div class="facts" style="margin-top:12px">' +
+    '<div class="fact"><b>' + (p.uitverkocht ? '–' : (p.prijs != null ? esc(euro(p.prijs)) : '?')) + '</b><span>7 nachten*</span></div>' +
+    '<div class="fact"><b>' + dec(p.score) + '</b><span>Booking · ' + (p.reviews != null ? esc(p.reviews) + ' reviews' : '? reviews') + '</span></div>' +
+    '<div class="fact"><b>' + esc(rit(p.hyeres)) + '</b><span>Rit vanaf Villa Hyères</span></div>' +
+    '<div class="fact"><b>' + esc(rit(p.thuis)) + '</b><span>Rit vanaf thuis (' + esc(DATA.thuis.label) + ')</span></div></div>';
+  if (link) h += '<a class="btn" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">Bekijk op Booking.com ↗</a>';
+  h += '<div class="section" style="margin-top:12px"><h3>Details</h3><div class="chips">' + yn(p.zwembad, 'Zwembad') + yn(p.annuleren, 'Gratis annuleren') + yn(p.ontbijt, 'Ontbijt') + yn(p.parasols, 'Parasols/schaduw') + '</div><dl>' +
+    (p.kamer ? '<dt>Kamertype</dt><dd>' + esc(p.kamer) + '</dd>' : '') +
+    (p.strand ? '<dt>Afstand strand</dt><dd>' + esc(p.strand) + '</dd>' : '') +
+    (p.opm ? '<dt>Opmerkingen (sheet)</dt><dd>' + esc(p.opm) + '</dd>' : '') +
+    '<dt>Ligging voor de ritberekening</dt><dd>' + esc(p.geo ? p.geo.note : 'onbekend') + '</dd></dl>' +
+    '<p class="legend">* Prijs uit de sheet; mogelijk voor 2 volwassenen, Ellie (6) nog toevoegen. Ritten zijn benaderingen (OpenStreetMap/OSRM, zonder verkeer of pauzes). ? = niet ingevuld in de sheet.</p></div>';
+  h += '<div class="section score"><h3>Jouw cijfer, ' + esc(ME) + ' <span class="status" id="st"></span></h3><div class="ten">' +
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function (n) { return '<button type="button" data-s="' + n + '"' + (mine.s === n ? ' class="on"' : '') + '>' + n + '</button>'; }).join('') +
+    '</div><div class="scale"><span>Niks voor ons</span><span>Topper</span></div><label class="lbl" for="cm">Notitie</label><textarea class="field" id="cm" maxlength="600" placeholder="Wat vind je ervan?">' + esc(mine.c || '') + '</textarea>' +
+    '<button type="button" class="linkbtn" id="clr">Mijn cijfer wissen</button></div>';
+  h += '<div class="section"><h3>' + esc(other) + '</h3>' + (typeof ov.s === 'number' ? '<p><b>' + ov.s + '/10</b></p>' : '<p class="said">Nog geen cijfer op dit toestel.</p>') + (ov.c ? '<p class="said">“' + esc(ov.c) + '”</p>' : '') + '</div></div>';
+  $('#view').innerHTML = h; window.scrollTo(0, 0);
+  document.querySelectorAll('.ten button').forEach(function (b) {
+    b.addEventListener('click', function () { setVote(ME, p.id, { s: +b.dataset.s }); document.querySelectorAll('.ten button').forEach(function (x) { x.classList.toggle('on', x === b); }); flash(); });
+  });
+  var t; $('#cm').addEventListener('input', function (e) { clearTimeout(t); t = setTimeout(function () { setVote(ME, p.id, { c: e.target.value }); flash(); }, 400); });
+  $('#clr').addEventListener('click', function () { var v = loadVotes(); if (v[ME]) delete v[ME][p.id]; saveVotes(v); detailView(id); });
+}
+function flash() { var s = $('#st'); if (s) { s.textContent = 'Bewaard op dit toestel'; s.className = 'status ok'; } }
+
+/* ---------- Rangschikking ---------- */
+function rankView() {
+  nav('rang');
+  var ps = DATA.plekken.slice().sort(function (a, b) { return sortVal(a, 'samen') - sortVal(b, 'samen') || (b.score || 0) - (a.score || 0); });
+  var full = ps.filter(function (p) { return combined(p.id).n === VOTERS.length; });
+  var h = '<h2 style="margin-bottom:6px">Onze rangschikking</h2><p class="intro">Gemiddelde van Scott en Kimberly. Een plek krijgt pas een plaats als jullie allebei een cijfer gaven.</p>';
+  var pos = 0;
+  h += ps.map(function (p) {
+    var c = combined(p.id), ranked = c.n === VOTERS.length; if (ranked) pos++;
+    var cls = ranked ? (pos === 1 ? 'pos p1' : 'pos') : 'pos none';
+    return '<div class="card"><div class="rank"><div class="' + cls + '">' + (ranked ? pos : '–') + '</div><div class="rank-main"><a href="#/plek/' + encodeURIComponent(p.id) + '"><h2>' + esc(p.naam) + '</h2></a><div class="loc">' + esc(p.plaats) + ' · ' + (p.uitverkocht ? 'uitverkocht' : (p.prijs != null ? esc(euro(p.prijs)) : 'prijs ?')) + ' · Hyères ' + esc(p.hyeres ? hm(p.hyeres.min) : '?') + '</div></div>' +
+      '<div class="total">' + (c.avg != null ? dec(c.avg) : '–') + '<small>/10</small></div></div>' +
+      '<div class="bar"><i style="width:' + (c.avg != null ? c.avg * 10 : 0) + '%"></i></div><div class="given">' +
+      VOTERS.map(function (w) { var s = vote(w, p.id).s; return '<span class="chip' + (typeof s === 'number' ? ' ok' : '') + '">' + esc(w) + ': ' + (typeof s === 'number' ? s : '–') + '</span>'; }).join('') + '</div></div>';
+  }).join('');
+  h += '<p class="intro">' + full.length + ' van ' + ps.length + ' plekken hebben twee cijfers.</p>';
+  $('#view').innerHTML = h; window.scrollTo(0, 0);
+}
+
+/* ---------- Kaart ---------- */
+var leafletReady = null;
+function loadLeaflet() {
+  if (leafletReady) return leafletReady;
+  leafletReady = new Promise(function (resolve, reject) {
+    var css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    css.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY='; css.crossOrigin = ''; document.head.appendChild(css);
+    var js = document.createElement('script'); js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo='; js.crossOrigin = '';
+    js.onload = function () { resolve(); }; js.onerror = function () { leafletReady = null; reject(new Error('kaart')); }; document.head.appendChild(js);
+  });
+  return leafletReady;
+}
+function mapView() {
+  nav('kaart');
+  $('#view').innerHTML = '<div id="map"></div><div class="keys"><span><i class="pin v"></i> Villa Hyères (basis)</span><span><i class="pin g"></i> Beschikbaar</span><span><i class="pin s"></i> Uitverkocht</span></div><p class="intro">Liggingen zijn bij benadering (centrum van de gemeente).</p>';
+  loadLeaflet().then(function () {
+    if (!document.getElementById('map')) return;
+    var map = L.map('map', { scrollWheelZoom: false });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 13, referrerPolicy: 'origin', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(map);
+    var b = [], v = DATA.villa;
+    L.marker([v.lat, v.lon], { icon: L.divIcon({ className: '', html: '<i class="pin v"></i>', iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(map).bindPopup('<div class="pop"><b>Villa Hyères</b><br>10–17 juli · basis</div>');
+    b.push([v.lat, v.lon]);
+    DATA.plekken.forEach(function (p) {
+      if (!p.geo) return;
+      var m = L.marker([p.geo.lat, p.geo.lon], { icon: L.divIcon({ className: '', html: '<i class="pin ' + (p.uitverkocht ? 's' : 'g') + '"></i>', iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(map);
+      m.bindTooltip('#' + esc(p.id), { permanent: true, direction: 'right', className: 'lbl-tip' });
+      m.bindPopup('<div class="pop"><b>' + esc(p.naam) + '</b><br>' + esc(p.plaats) + '<br>Hyères: ' + esc(rit(p.hyeres)) + '<br><a href="#/plek/' + encodeURIComponent(p.id) + '">Bekijk fiche</a></div>');
+      b.push([p.geo.lat, p.geo.lon]);
+    });
+    map.fitBounds(b, { padding: [24, 24] });
+  }).catch(function () { var m = $('#map'); if (m) m.outerHTML = '<p class="warn">De kaart kon niet laden. Controleer je verbinding.</p>'; });
+}
+
+/* ---------- Villa & info ---------- */
+function villaView() {
+  nav('villa');
+  var v = DATA.villa, fotoUrl = safeUrl(v.foto);
+  var h = '<div class="narrow"><div class="hero-photo"><div class="photo">' + HOUSE + (fotoUrl ? '<img src="' + esc(fotoUrl) + '" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">' : '') + '</div></div>';
+  h += '<div class="hero"><h2>' + esc(v.naam) + '</h2><div class="loc">' + esc(v.ligging) + ' · 10–17 juli 2027 met de groep</div></div>';
+  h += '<p class="verdict">' + esc(v.score) + '. Vanaf hier vertrekken jullie op 17 juli naar jullie eigen week.</p>';
+  h += '<div class="facts"><div class="fact"><b>17 bedden</b><span>Max. 18 gasten · 5 badkamers</span></div><div class="fact"><b>250 m²</b><span>Terras met privézwembad</span></div><div class="fact"><b>' + esc(rit(v.thuis)) + '</b><span>Rit vanaf thuis</span></div><div class="fact"><b>Airco</b><span>Parking ' + esc(v.parking) + '</span></div></div>';
+  h += '<a class="btn" href="' + esc(safeUrl(v.link)) + '" target="_blank" rel="noopener noreferrer">Advertentie op Casamundo ↗</a>';
+  h += '<div class="section" style="margin-top:12px"><h3>Over de villa</h3><dl><dt>Slapen</dt><dd>' + esc(v.slapen) + '</dd><dt>Zwembad</dt><dd>' + esc(v.zwembad) + '</dd><dt>Prijs</dt><dd>' + esc(v.prijs) + '</dd><dt>Ligging</dt><dd>' + esc(v.ligging_detail) + '</dd></dl></div>';
+  h += '<div class="section"><h3>Goed om te weten</h3><ul class="note">' +
+    '<li><b>Thuis</b> = ' + esc(DATA.thuis.label) + '. ' + (DATA.thuis.aanname ? 'Er was geen adres bekend; de ritten vanaf thuis gaan uit van Oudenaarde.' : '') + '</li>' +
+    '<li>Ritten zijn benaderingen via OpenStreetMap (OSRM), zonder verkeer, pauzes of tol. Vanaf Hyères = centrum Hyères.</li>' +
+    '<li>Prijzen komen uit Kimberly\'s sheet en zijn mogelijk voor 2 volwassenen; Ellie nog toevoegen op Booking.</li>' +
+    '<li>Je cijfers staan enkel in de browser van dit toestel. Wissel ze uit met de knoppen hieronder.</li>' +
+    '<li>Bron: ' + esc(DATA.bron) + ' · bijgewerkt ' + esc(DATA.gemaakt) + '.</li></ul></div>';
+  h += '<div class="section"><h3>Cijfers delen</h3><p class="intro" style="margin-top:0">Exporteer je cijfers naar een bestandje en stuur het naar de ander, die het hier importeert. Bestaande cijfers worden samengevoegd (de nieuwste wint).</p><div class="row2"><button class="btn" type="button" id="exp">Exporteer</button><button class="btn ghost" type="button" id="imp">Importeer</button></div><input type="file" id="file" accept="application/json,.json" hidden><p class="status" id="ist"></p>' +
+    '<button type="button" class="linkbtn" id="forget">Wachtwoord vergeten op dit toestel</button></div></div>';
+  $('#view').innerHTML = h; window.scrollTo(0, 0);
+  $('#exp').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify({ app: 'vakantie2027', v: 1, votes: loadVotes() }, null, 1)], { type: 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cijfers-' + ME.toLowerCase() + '-' + new Date().toISOString().slice(0, 10) + '.json'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+  $('#imp').addEventListener('click', function () { $('#file').click(); });
+  $('#file').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    f.text().then(function (txt) {
+      var inc = JSON.parse(txt); if (!inc || inc.app !== 'vakantie2027' || typeof inc.votes !== 'object') throw new Error('fmt');
+      var cur = loadVotes(), n = 0;
+      VOTERS.forEach(function (w) {
+        var src = inc.votes[w]; if (!src || typeof src !== 'object') return; cur[w] = cur[w] || {};
+        Object.keys(src).forEach(function (id) {
+          var o = src[id]; if (!o || typeof o !== 'object' || !P(id)) return;
+          var s = (typeof o.s === 'number' && o.s >= 1 && o.s <= 10) ? Math.round(o.s) : undefined;
+          var clean = { s: s, c: typeof o.c === 'string' ? o.c.slice(0, 600) : undefined, t: +o.t || 0 };
+          if (!cur[w][id] || (cur[w][id].t || 0) < clean.t) { cur[w][id] = clean; n++; }
+        });
+      });
+      saveVotes(cur); $('#ist').textContent = n + ' cijfers/notities overgenomen.'; $('#ist').className = 'status ok';
+    }).catch(function () { $('#ist').textContent = 'Dit bestand kon ik niet lezen.'; $('#ist').className = 'status bad'; });
+    e.target.value = '';
+  });
+  $('#forget').addEventListener('click', function () { ls('vk27.key', null); location.reload(); });
+}
+
+/* ---------- Router ---------- */
+function route() {
+  if (!DATA || $('#app').hidden) return;
+  var h = location.hash, m;
+  if ((m = h.match(/^#\/plek\/(.+)$/))) return detailView(decodeURIComponent(m[1]));
+  if (h === '#/kaart') return mapView();
+  if (h === '#/rang') return rankView();
+  if (h === '#/villa') return villaView();
+  return listView();
+}
+window.addEventListener('hashchange', route);
+boot();
+})();
+</script>
+</body>
+</html>
