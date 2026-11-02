@@ -194,7 +194,6 @@ label.lbl { font-weight: 600; }
 .note { font-size: 13px; color: var(--muted); margin: 0; padding-left: 18px; }
 .note li + li { margin-top: 6px; }
 .linkbtn { background: none; border: 0; color: var(--teal); font-weight: 600; text-decoration: underline; padding: 8px 0; }
-
 /* Extra voor vakantie2027 */
 .nav-in { grid-template-columns: repeat(4, 1fr); }
 .base { background: linear-gradient(160deg, #0f5c63 0%, #17757b 70%, #f2b84b 160%); color: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
@@ -223,6 +222,11 @@ a.hero-photo { text-decoration: none; }
 .nosite { margin: 0 0 12px; }
 .pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-top: 12px; }
 .pics .photo { border-radius: 12px; overflow: hidden; }
+
+.rnote { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--grey-soft); font-size: 14px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rnote b { color: var(--teal); }
+.rnote.sheet { background: var(--amber-soft); }
+
 </style>
 </head>
 <body>
@@ -446,7 +450,7 @@ function rankView() {
   nav('rang');
   var ps = DATA.plekken.slice().sort(function (a, b) { return sortVal(a, 'samen') - sortVal(b, 'samen') || (b.score || 0) - (a.score || 0); });
   var full = ps.filter(function (p) { return combined(p.id).n === VOTERS.length; });
-  var h = '<h2 style="margin-bottom:6px">Onze rangschikking</h2><p class="intro">Gemiddelde van Scott en Kimberly. Een plek krijgt pas een plaats als jullie allebei een cijfer gaven.</p>';
+  var h = '<h2 style="margin-bottom:6px">Onze rangschikking</h2><p class="intro">Gemiddelde van Scott en Kimberly, met hun notities eronder. Een plek krijgt pas een plaats als jullie allebei een cijfer gaven.</p>';
   var pos = 0;
   h += ps.map(function (p) {
     var c = combined(p.id), ranked = c.n === VOTERS.length; if (ranked) pos++;
@@ -454,7 +458,9 @@ function rankView() {
     return '<div class="card"><div class="rank"><div class="' + cls + '">' + (ranked ? pos : '–') + '</div><div class="rank-main"><a href="#/plek/' + encodeURIComponent(p.id) + '"><h2>' + esc(p.naam) + '</h2></a><div class="loc">' + esc(p.plaats) + ' · ' + (p.uitverkocht ? 'uitverkocht' : (p.prijs != null ? esc(euro(p.prijs)) : 'prijs ?')) + ' · Hyères ' + esc(p.hyeres ? hm(p.hyeres.min) : '?') + '</div></div>' +
       '<div class="total">' + (c.avg != null ? dec(c.avg) : '–') + '<small>/10</small></div></div>' +
       '<div class="bar"><i style="width:' + (c.avg != null ? c.avg * 10 : 0) + '%"></i></div><div class="given">' +
-      VOTERS.map(function (w) { var s = vote(w, p.id).s; return '<span class="chip' + (typeof s === 'number' ? ' ok' : '') + '">' + esc(w) + ': ' + (typeof s === 'number' ? s : '–') + '</span>'; }).join('') + '</div></div>';
+      VOTERS.map(function (w) { var s = vote(w, p.id).s; return '<span class="chip' + (typeof s === 'number' ? ' ok' : '') + '">' + esc(w) + ': ' + (typeof s === 'number' ? s : '–') + '</span>'; }).join('') + '</div>' +
+      VOTERS.map(function (w) { var n = (vote(w, p.id).c || '').trim(); return n ? '<div class="rnote"><b>' + esc(w) + ':</b> ' + esc(n) + '</div>' : ''; }).join('') +
+      (function () { var o = (p.opm || '').replace(/\s*Prijs mogelijk voor 2 volwassenen, kind nog toevoegen\.?/, '').trim(); return o ? '<div class="rnote sheet"><b>Sheet:</b> ' + esc(o) + '</div>' : ''; })() + '</div>';
   }).join('');
   h += '<p class="intro">' + full.length + ' van ' + ps.length + ' plekken hebben twee cijfers.</p>';
   $('#view').innerHTML = h; window.scrollTo(0, 0);
