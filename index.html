@@ -249,6 +249,21 @@ a.hero-photo { text-decoration: none; }
 .top small.sync.ok::before { content: '● '; color: #9be3a8; }
 .top small.sync.bad { color: #ffd9c7; }
 
+/* Cijfers + notities in het overzicht (nov 2026) */
+.photo .votes { position: absolute; right: 6px; bottom: 6px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; max-width: calc(100% - 56px); }
+.vb { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 700; line-height: 1.3; background: rgba(255,255,255,.93); color: var(--muted); box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.vb b { font-size: 14px; color: var(--ink); }
+.vb.ok { background: var(--green-soft); color: var(--green); }
+.vb.ok b { color: var(--green); }
+.vb.me { outline: 2px solid var(--teal); outline-offset: -2px; }
+.tnotes:empty { display: none; }
+.tnotes { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.tnote { font-size: 12.5px; line-height: 1.35; background: var(--grey-soft); border-radius: 8px; padding: 5px 7px; overflow-wrap: anywhere; color: var(--ink); }
+.tnote b { color: var(--teal); }
+.pop .pvotes { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.pop .pvotes .vb { box-shadow: none; border: 1px solid var(--line); }
+.pop .tnote { margin-bottom: 4px; }
+
 </style>
 </head>
 <body>
@@ -288,7 +303,7 @@ a.hero-photo { text-decoration: none; }
 var VOTERS = ['Scott', 'Kimberly'];
 var DATA = null, ME = null, KEY = null;
 var HOUSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
-var view = { sort: 'score', f: {} };
+var view = { sort: 'samen', f: {} };
 
 function $(s) { return document.querySelector(s); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -505,7 +520,17 @@ function onRemoteChange() {
   }
   if (h === '#/rang') return rankView(true);
   if (h === '#/kaart' || h === '#/villa') return;
-  var y = window.scrollY; listView(); window.scrollTo(0, y);
+  updateList();
+}
+function updateList() {
+  var tiles = [].slice.call(document.querySelectorAll('.grid .tile[data-id]'));
+  var cur = tiles.map(function (t) { return t.dataset.id; });
+  var want = sortPlekken(cur.map(P).filter(Boolean), view.sort).map(function (p) { return p.id; });
+  if (cur.join() !== want.join()) { var y = window.scrollY; listView(); window.scrollTo(0, y); return; }   // volgorde gewijzigd: opnieuw tekenen, scroll behouden
+  tiles.forEach(function (t) {
+    var p = P(t.dataset.id), v = t.querySelector('.votes'), n = t.querySelector('.tnotes');
+    if (v) v.innerHTML = voteBadges(p); if (n) n.innerHTML = notePreview(p);
+  });
 }
 function otherName() { return VOTERS.filter(function (w) { return w !== ME; })[0]; }
 function otherHtml(id) {
@@ -541,17 +566,30 @@ function priceHtml(p) {
 }
 function photo(p, big) {
   var f = fotos(p)[0];
-  return '<div class="photo">' + HOUSE + (f ? '<img src="' + esc(f.src) + '" alt="' + esc(p.naam) + '"' + (p.uitverkocht ? ' class="sold"' : '') + ' loading="lazy">' : '') + (p.score != null ? '<span class="bscore">' + dec(p.score) + '</span>' : '') + '<span class="num">#' + esc(p.id) + '</span>' + (big ? '' : mineBadge(p)) + '</div>';
+  return '<div class="photo">' + HOUSE + (f ? '<img src="' + esc(f.src) + '" alt="' + esc(p.naam) + '"' + (p.uitverkocht ? ' class="sold"' : '') + ' loading="lazy">' : '') + (p.score != null ? '<span class="bscore">' + dec(p.score) + '</span>' : '') + '<span class="num">#' + esc(p.id) + '</span>' + (big ? '' : '<span class="votes">' + voteBadges(p) + '</span>') + '</div>';
 }
-function mineBadge(p) { var s = vote(ME, p.id).s; return typeof s === 'number' ? '<span class="mine" style="left:auto">' + s + '</span>' : ''; }
+function voteBadges(p) {
+  return VOTERS.map(function (w) { var s = vote(w, p.id).s, has = typeof s === 'number'; return '<span class="vb' + (has ? ' ok' : '') + (w === ME ? ' me' : '') + '">' + esc(w) + ' <b>' + (has ? s : '–') + '</b></span>'; }).join('');
+}
+function short(s, n) { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).replace(/\s+$/, '') + '…' : s; }
+function notePreview(p, n) {
+  return VOTERS.map(function (w) { var c = short(vote(w, p.id).c, n || 80); return c ? '<div class="tnote"><b>' + esc(w) + ':</b> ' + esc(c) + '</div>' : ''; }).join('');
+}
 function nav(tab) { document.querySelectorAll('.nav a').forEach(function (a) { a.classList.toggle('on', a.dataset.tab === tab); }); }
+function cmpSamen(a, b) {   // hoogste gemiddelde eerst; bij gelijk: meer cijfers eerst; zonder cijfer onderaan; daarna Booking-score
+  var ca = combined(a.id), cb = combined(b.id);
+  if (ca.avg == null || cb.avg == null) { if (ca.avg != null) return -1; if (cb.avg != null) return 1; }
+  else if (ca.avg !== cb.avg) return cb.avg - ca.avg;
+  else if (ca.n !== cb.n) return cb.n - ca.n;
+  return (b.score || 0) - (a.score || 0);
+}
+function sortPlekken(ps, k) { return ps.slice().sort(k === 'samen' ? cmpSamen : function (a, b) { return sortVal(a, k) - sortVal(b, k); }); }
 function sortVal(p, k) {
   switch (k) {
     case 'prijs': return p.uitverkocht || p.prijs == null ? 1e9 : p.prijs;
     case 'hyeres': return p.hyeres ? p.hyeres.min : 1e9;
     case 'thuis': return p.thuis ? p.thuis.min : 1e9;
     case 'mine': var s = vote(ME, p.id).s; return typeof s === 'number' ? -s : 99;
-    case 'samen': var c = combined(p.id); return c.avg == null ? 99 : (c.n < VOTERS.length ? 50 : 0) - (c.avg + c.n / 100);  // eerst plekken met twee cijfers
     default: return -(p.score || 0);
   }
 }
@@ -566,7 +604,8 @@ function listView() {
     if (view.f.ontbijt && p.ontbijt !== true) return false;
     if (view.f.beschikbaar && (p.uitverkocht || p.prijs == null)) return false;
     return true;
-  }).sort(function (a, b) { return sortVal(a, view.sort) - sortVal(b, view.sort); });
+  });
+  ps = sortPlekken(ps, view.sort);
   var v = DATA.villa;
   var h = '<div class="base"><h2>☀️ Basis: ' + esc(v.naam) + ' · 10–17 juli</h2><p>Daarna 17–24 juli met z\'n drietjes (' + esc(DATA.week.wie) + '). Ritten hieronder zijn vanaf Hyères en vanaf thuis. <a href="#/villa">Meer over de villa →</a></p></div>';
   h += '<div class="tools"><label class="lbl" for="sort">Sorteer</label><select id="sort">' +
@@ -576,10 +615,11 @@ function listView() {
   h += '<p class="intro">' + ps.length + ' van ' + DATA.plekken.length + ' plekken. * Prijs mogelijk voor 2 volwassenen; kind nog toevoegen.</p>';
   if (!ps.length) h += '<p class="empty">Geen plekken met deze filters.</p>';
   h += '<div class="grid">' + ps.map(function (p) {
-    return '<a class="tile' + (p.uitverkocht ? ' sold' : '') + '" href="#/plek/' + encodeURIComponent(p.id) + '">' + photo(p) +
+    return '<a class="tile' + (p.uitverkocht ? ' sold' : '') + '" data-id="' + esc(p.id) + '" href="#/plek/' + encodeURIComponent(p.id) + '">' + photo(p) +
       '<div class="tile-body"><h2>' + esc(p.naam) + '</h2><span class="loc">' + esc(p.plaats) + ' · ' + esc(p.regio) + '</span>' +
       '<div class="drive"><span>Hyères: <b>' + esc(rit(p.hyeres)) + '</b></span><span>Thuis: <b>' + esc(rit(p.thuis)) + '</b></span></div>' +
       '<div class="chips">' + (p.zwembad ? '<span class="chip ok">Zwembad</span>' : '') + (p.annuleren ? '<span class="chip ok">Gratis annuleren</span>' : '') + (p.ontbijt ? '<span class="chip ok">Ontbijt</span>' : '') + '</div>' +
+      '<div class="tnotes">' + notePreview(p) + '</div>' +
       '<div class="price">' + priceHtml(p) + '</div></div></a>';
   }).join('') + '</div>';
   $('#view').innerHTML = h;
@@ -633,16 +673,16 @@ function detailView(id) {
 /* ---------- Rangschikking ---------- */
 function rankView(keep) {
   nav('rang');
-  var ps = DATA.plekken.slice().sort(function (a, b) { return sortVal(a, 'samen') - sortVal(b, 'samen') || (b.score || 0) - (a.score || 0); });
-  var full = ps.filter(function (p) { return combined(p.id).n === VOTERS.length; });
+  var ps = sortPlekken(DATA.plekken, 'samen');
+  var full = ps.filter(function (p) { return combined(p.id).n === VOTERS.length; }), some = ps.filter(function (p) { return combined(p.id).n > 0; });
   var other = otherName(), y = window.scrollY;
   var h = '';
   h += '<h2 style="margin-bottom:6px">Onze rangschikking</h2>';
-  h += '<div class="weegt"><b>Zo weegt het</b> De volgorde is het gemiddelde van de cijfers van Scott en Kimberly (automatisch gedeeld); een plek krijgt pas een plaats als jullie allebei scoorden. De chips onder elke plek tonen wat doorweegt: prijs, Booking-score, rit vanaf Hyères en thuis, zwembad en gratis annuleren.</div>';
+  h += '<div class="weegt"><b>Zo weegt het</b> De volgorde is het gemiddelde van de cijfers van Scott en Kimberly (automatisch gedeeld). Eén cijfer is genoeg voor een plaats; bij een gelijk gemiddelde gaat een plek met twee cijfers voor. Plekken zonder cijfer staan onderaan zonder nummer. De chips onder elke plek tonen wat doorweegt: prijs, Booking-score, rit vanaf Hyères en thuis, zwembad en gratis annuleren.</div>';
   if (ROOM && pulledOnce && pullOk && !remoteVoters[other]) h += '<div class="assume no-other">Nog geen cijfers van ' + esc(other) + '. Zodra ' + esc(other) + ' een plek scoort, verschijnt dat hier vanzelf.</div>';
   var pos = 0;
   h += ps.map(function (p) {
-    var c = combined(p.id), ranked = c.n === VOTERS.length; if (ranked) pos++;
+    var c = combined(p.id), ranked = c.n > 0; if (ranked) pos++;
     var cls = ranked ? (pos === 1 ? 'pos p1' : 'pos') : 'pos none';
     return '<div class="card"><div class="rank"><div class="' + cls + '">' + (ranked ? pos : '–') + '</div><div class="rank-main"><a href="#/plek/' + encodeURIComponent(p.id) + '"><h2>' + esc(p.naam) + '</h2></a><div class="loc">' + esc(p.plaats) + ' · ' + esc(p.regio) + '</div></div>' +
       '<div class="total">' + (c.avg != null ? dec(c.avg) : '–') + '<small>/10</small></div></div>' +
@@ -651,7 +691,7 @@ function rankView(keep) {
       VOTERS.map(function (w) { var n = (vote(w, p.id).c || '').trim(); return n ? '<div class="rnote"><b>' + esc(w) + ':</b> ' + esc(n) + '</div>' : ''; }).join('') +
       (function () { var o = (p.opm || '').replace(/\s*Prijs mogelijk voor 2 volwassenen, kind nog toevoegen\.?/, '').trim(); return o ? '<div class="rnote sheet"><b>Sheet:</b> ' + esc(o) + '</div>' : ''; })() + '</div>';
   }).join('');
-  h += '<p class="intro">' + full.length + ' van ' + ps.length + ' plekken hebben twee cijfers.</p>';
+  h += '<p class="intro">' + some.length + ' van ' + ps.length + ' plekken hebben een cijfer, waarvan ' + full.length + ' van jullie allebei.</p>';
   $('#view').innerHTML = h; window.scrollTo(0, keep ? y : 0);
 }
 
@@ -682,7 +722,7 @@ function mapView() {
       if (!p.geo) return;
       var m = L.marker([p.geo.lat, p.geo.lon], { icon: L.divIcon({ className: '', html: '<i class="pin ' + (p.uitverkocht ? 's' : 'g') + '"></i>', iconSize: [22, 22], iconAnchor: [11, 11] }) }).addTo(map);
       m.bindTooltip('#' + esc(p.id), { permanent: true, direction: 'right', className: 'lbl-tip' });
-      m.bindPopup('<div class="pop"><b>' + esc(p.naam) + '</b><br>' + esc(p.plaats) + '<br>Hyères: ' + esc(rit(p.hyeres)) + '<br><a href="#/plek/' + encodeURIComponent(p.id) + '">Bekijk fiche</a></div>');
+      m.bindPopup(function () { return '<div class="pop"><b>' + esc(p.naam) + '</b><br>' + esc(p.plaats) + '<br>Hyères: ' + esc(rit(p.hyeres)) + '<div class="pvotes">' + voteBadges(p) + '</div>' + notePreview(p, 60) + '<a href="#/plek/' + encodeURIComponent(p.id) + '">Bekijk fiche</a></div>'; });
       b.push([p.geo.lat, p.geo.lon]);
     });
     map.fitBounds(b, { padding: [24, 24] });
