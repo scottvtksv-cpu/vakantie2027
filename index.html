@@ -231,6 +231,21 @@ a.hero-photo { text-decoration: none; }
 .offsite { margin: 14px 2px 4px; font-size: 13px; color: var(--muted); }
 .offsite a { color: var(--muted); }
 
+/* Delen via link + recap (nov 2026) */
+.hint { background: var(--teal-soft); color: var(--teal) !important; border-radius: 12px; padding: 10px 12px; font-size: 14px; font-weight: 600; margin: 12px 0 0 !important; }
+.notice { background: var(--green-soft); color: var(--green); border-left: 5px solid var(--green); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; font-weight: 700; overflow-wrap: anywhere; }
+.notice.bad { background: var(--red-soft); color: var(--red); border-left-color: var(--red); }
+.weegt { background: var(--teal-soft); border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.45; color: var(--ink); margin: 0 0 12px; }
+.weegt b { color: var(--teal); margin-right: 4px; }
+.share-ask .btn { margin-top: 10px; min-height: 44px; padding: 10px 14px; }
+.recap { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 8px; }
+.recap .rlbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-right: 2px; }
+.chip.val { background: var(--teal-soft); color: var(--teal); }
+.chip.bk { background: #e6edf8; color: #003580; }
+.chip.muted { background: transparent; border: 1px dashed #cfc6b6; color: var(--muted); font-weight: 600; padding: 2px 8px; }
+#shareUrl { margin-top: 8px; font-size: 13px; padding: 10px; }
+#sst { margin: 8px 0 0; overflow-wrap: anywhere; }
+
 </style>
 </head>
 <body>
@@ -242,13 +257,15 @@ a.hero-photo { text-decoration: none; }
     <label style="display:flex;gap:8px;align-items:center;margin:12px 0;font-size:14px"><input type="checkbox" id="remember" checked> Onthoud op dit toestel</label>
     <button class="btn" id="go" type="submit">Openen</button>
     <p class="err" id="err" role="alert"></p>
+    <p class="hint" id="gateHint" hidden></p>
   </form>
 </div>
 <div class="gate" id="who" hidden>
   <div class="gate-card">
     <h1>Wie ben jij?</h1>
-    <p>Je cijfers worden enkel op dit toestel bewaard.</p>
+    <p>Je cijfers worden op dit toestel bewaard. Delen kan via een link onder Villa &amp; info.</p>
     <div class="names" id="names"></div>
+    <p class="hint" id="whoHint" hidden></p>
   </div>
 </div>
 <div id="app" hidden>
@@ -310,7 +327,7 @@ async function boot() {
     var saved = ls('vk27.key');
     if (saved) { await openWith(b64(saved)); return enter(); }
   } catch (e) { ls('vk27.key', null); }
-  $('#gate').hidden = false; $('#code').focus();
+  $('#gate').hidden = false; shareHint('#gateHint'); $('#code').focus();
 }
 $('#gateForm').addEventListener('submit', async function (ev) {
   ev.preventDefault();
@@ -335,6 +352,7 @@ function enter() {
 function pickName() {
   $('#app').hidden = true; $('#who').hidden = false;
   $('#names').innerHTML = VOTERS.map(function (n) { return '<button type="button" data-n="' + esc(n) + '">' + esc(n) + '</button>'; }).join('');
+  shareHint('#whoHint');
 }
 $('#names').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; ls('vk27.me', b.dataset.n); enter(); });
 $('#me').addEventListener('click', function () { if (confirm('Van naam wisselen? Je cijfers blijven bewaard.')) { ls('vk27.me', null); pickName(); } });
@@ -349,12 +367,85 @@ function combined(id) {
   return { n: s.length, avg: s.length ? s.reduce(function (a, b) { return a + b; }, 0) / s.length : null, sum: s.reduce(function (a, b) { return a + b; }, 0) };
 }
 
+/* ---------- Cijfers delen via link (#cijfers=...) ---------- */
+var SHARE_MAX = 24000, NOTICE = null, GOTO_SHARE = false;
+function b64url(bytes) { return toB64(bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function unb64url(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return b64(s); }
+function shareRaw() { var m = location.hash.match(/^#cijfers=(.*)$/); return m ? m[1] : null; }
+function makeShare() {
+  var mine = loadVotes()[ME] || {}, d = {}, n = 0;
+  Object.keys(mine).forEach(function (id) {
+    var o = mine[id]; if (!o || typeof o !== 'object' || !P(id)) return;
+    var s = (typeof o.s === 'number' && o.s >= 1 && o.s <= 10) ? Math.round(o.s) : 0, c = typeof o.c === 'string' ? o.c.slice(0, 600) : '';
+    if (!s && !c.trim()) return;
+    d[id] = [s, c, Math.round(+o.t || 0)]; n++;
+  });
+  var json = JSON.stringify({ a: 'vk27', v: 1, n: ME, d: d });
+  return { n: n, url: location.origin + location.pathname + '#cijfers=' + b64url(new TextEncoder().encode(json)) };
+}
+function parseShare(raw) {
+  if (typeof raw !== 'string' || !raw || raw.length > SHARE_MAX || !/^[A-Za-z0-9_-]+$/.test(raw)) return null;
+  var o; try { o = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(unb64url(raw))); } catch (e) { return null; }
+  if (!o || typeof o !== 'object' || o.a !== 'vk27' || o.v !== 1 || VOTERS.indexOf(o.n) < 0 || !o.d || typeof o.d !== 'object' || Array.isArray(o.d)) return null;
+  var keys = Object.keys(o.d); if (keys.length > 100) return null;
+  var out = Object.create(null), max = Date.now() + 864e5;
+  keys.forEach(function (id) {
+    var e = o.d[id]; if (!/^\d{1,4}$/.test(id) || !Array.isArray(e)) return;
+    var s = e[0], c = e[1], t = e[2];
+    s = (typeof s === 'number' && Number.isInteger(s) && s >= 1 && s <= 10) ? s : undefined;
+    if (typeof c !== 'string' || c.length > 600) c = undefined;
+    t = (typeof t === 'number' && isFinite(t) && t >= 0 && t <= max) ? t : 0;
+    if (s === undefined && !(c && c.trim())) return;
+    out[id] = { s: s, c: c, t: t };
+  });
+  return { n: o.n, d: out };
+}
+function shareHint(sel) {
+  var el = $(sel), raw = shareRaw(); if (!el) return;
+  var sh = raw ? parseShare(raw) : null;
+  el.hidden = !sh; if (sh) el.textContent = 'Je opent een deellink met de cijfers van ' + sh.n + '. Daarna neem ik ze automatisch over.';
+}
+function takeShare(raw) {
+  history.replaceState(null, '', location.pathname + location.search + '#/rang');
+  var sh = parseShare(raw);
+  if (!sh) NOTICE = { bad: true, t: 'Deze deellink kon ik niet lezen. Er is niets overgenomen.' };
+  else if (sh.n === ME) NOTICE = { bad: true, t: 'Deze link bevat je eigen cijfers (' + ME + '). Er is niets overgenomen; stuur hem door naar de ander.' };
+  else {
+    var cur = loadVotes(), n = 0, kept = 0; if (!cur[sh.n] || typeof cur[sh.n] !== 'object') cur[sh.n] = {};
+    Object.keys(sh.d).forEach(function (id) {
+      if (!P(id)) return; n++;
+      var e = sh.d[id], old = cur[sh.n][id];
+      if (old && (old.t || 0) > e.t) { kept++; return; }
+      var c = { t: e.t }; if (e.s !== undefined) c.s = e.s; if (e.c !== undefined) c.c = e.c; cur[sh.n][id] = c;
+    });
+    saveVotes(cur);
+    NOTICE = { t: 'Cijfers van ' + sh.n + ' overgenomen: ' + n + (n === 1 ? ' plek' : ' plekken') + (kept ? ' (' + kept + ' had je al in een nieuwere versie)' : '') + '.' };
+  }
+  rankView();
+}
+function fallbackCopy(f) { try { f.focus(); f.select(); return document.execCommand('copy'); } catch (e) { return false; } }
+function hisHer(w) { return w === 'Kimberly' ? 'haar' : 'zijn'; }
+
 /* ---------- Helpers ---------- */
 function P(id) { return DATA.plekken.filter(function (p) { return p.id === id; })[0]; }
 function yn(v, label) {
   if (v === true) return '<span class="chip ok">✓ ' + label + '</span>';
   if (v === false) return '<span class="chip nee">✗ ' + label + '</span>';
   return '<span class="chip">? ' + label + '</span>';
+}
+function recap(p) {
+  var c = [];
+  function ch(cls, txt) { c.push('<span class="chip' + (cls ? ' ' + cls : '') + '">' + esc(txt) + '</span>'); }
+  function flag(v, pos, neg, negCls) { if (v === true) ch('ok', '✓ ' + pos); else if (v === false) { if (neg) ch(negCls, neg); } else ch('muted', '? ' + pos); }
+  if (p.uitverkocht) ch('nee', 'Uitverkocht'); else if (p.prijs != null) ch('val', euro(p.prijs)); else ch('deels', 'Prijs ?');
+  if (p.score != null) ch('bk', 'Booking ' + dec(p.score) + (p.reviews != null ? ' · ' + Math.round(p.reviews) + ' rev.' : '')); else ch('muted', '? Booking-score');
+  ch(p.hyeres ? 'val' : 'muted', 'Hyères ' + (p.hyeres ? hm(p.hyeres.min) : '?'));
+  ch(p.thuis ? 'val' : 'muted', 'Thuis ' + (p.thuis ? hm(p.thuis.min) : '?'));
+  flag(p.zwembad, 'Zwembad', 'Geen zwembad', 'deels');
+  flag(p.annuleren, 'Gratis annuleren', 'Niet gratis annuleren', 'nee');
+  flag(p.ontbijt, 'Ontbijt', null);
+  flag(p.parasols, 'Schaduw', null);
+  return '<div class="recap"><span class="rlbl">Doorwegend</span>' + c.join('') + '</div>';
 }
 function priceHtml(p) {
   if (p.uitverkocht) return '<span class="todo">Uitverkocht 17–24 juli</span>';
@@ -453,20 +544,27 @@ function rankView() {
   nav('rang');
   var ps = DATA.plekken.slice().sort(function (a, b) { return sortVal(a, 'samen') - sortVal(b, 'samen') || (b.score || 0) - (a.score || 0); });
   var full = ps.filter(function (p) { return combined(p.id).n === VOTERS.length; });
-  var h = '<h2 style="margin-bottom:6px">Onze rangschikking</h2><p class="intro">Gemiddelde van Scott en Kimberly, met hun notities eronder. Een plek krijgt pas een plaats als jullie allebei een cijfer gaven.</p>';
+  var other = VOTERS.filter(function (w) { return w !== ME; })[0], ovs = loadVotes()[other] || {};
+  var hasOther = Object.keys(ovs).some(function (id) { return P(id) && ovs[id] && typeof ovs[id].s === 'number'; });
+  var h = '';
+  if (NOTICE) { h += '<div class="notice' + (NOTICE.bad ? ' bad' : '') + '" role="status">' + esc(NOTICE.t) + '</div>'; NOTICE = null; }
+  h += '<h2 style="margin-bottom:6px">Onze rangschikking</h2>';
+  h += '<div class="weegt"><b>Zo weegt het</b> De volgorde is het gemiddelde van de cijfers van Scott en Kimberly; een plek krijgt pas een plaats als jullie allebei scoorden. De chips onder elke plek tonen wat doorweegt: prijs, Booking-score, rit vanaf Hyères en thuis, zwembad en gratis annuleren.</div>';
+  if (!hasOther) h += '<div class="assume share-ask">Nog geen cijfers van ' + esc(other) + ' op dit toestel. Vraag ' + esc(other) + ' om ' + hisHer(other) + ' cijfers te delen via de link (Cijfers delen).<a class="btn ghost" href="#/villa" id="toShare">Naar Cijfers delen</a></div>';
   var pos = 0;
   h += ps.map(function (p) {
     var c = combined(p.id), ranked = c.n === VOTERS.length; if (ranked) pos++;
     var cls = ranked ? (pos === 1 ? 'pos p1' : 'pos') : 'pos none';
-    return '<div class="card"><div class="rank"><div class="' + cls + '">' + (ranked ? pos : '–') + '</div><div class="rank-main"><a href="#/plek/' + encodeURIComponent(p.id) + '"><h2>' + esc(p.naam) + '</h2></a><div class="loc">' + esc(p.plaats) + ' · ' + (p.uitverkocht ? 'uitverkocht' : (p.prijs != null ? esc(euro(p.prijs)) : 'prijs ?')) + ' · Hyères ' + esc(p.hyeres ? hm(p.hyeres.min) : '?') + '</div></div>' +
+    return '<div class="card"><div class="rank"><div class="' + cls + '">' + (ranked ? pos : '–') + '</div><div class="rank-main"><a href="#/plek/' + encodeURIComponent(p.id) + '"><h2>' + esc(p.naam) + '</h2></a><div class="loc">' + esc(p.plaats) + ' · ' + esc(p.regio) + '</div></div>' +
       '<div class="total">' + (c.avg != null ? dec(c.avg) : '–') + '<small>/10</small></div></div>' +
       '<div class="bar"><i style="width:' + (c.avg != null ? c.avg * 10 : 0) + '%"></i></div><div class="given">' +
-      VOTERS.map(function (w) { var s = vote(w, p.id).s; return '<span class="chip' + (typeof s === 'number' ? ' ok' : '') + '">' + esc(w) + ': ' + (typeof s === 'number' ? s : '–') + '</span>'; }).join('') + '</div>' +
+      VOTERS.map(function (w) { var s = vote(w, p.id).s; return '<span class="chip' + (typeof s === 'number' ? ' ok' : '') + '">' + esc(w) + ': ' + (typeof s === 'number' ? s : '–') + '</span>'; }).join('') + '</div>' + recap(p) +
       VOTERS.map(function (w) { var n = (vote(w, p.id).c || '').trim(); return n ? '<div class="rnote"><b>' + esc(w) + ':</b> ' + esc(n) + '</div>' : ''; }).join('') +
       (function () { var o = (p.opm || '').replace(/\s*Prijs mogelijk voor 2 volwassenen, kind nog toevoegen\.?/, '').trim(); return o ? '<div class="rnote sheet"><b>Sheet:</b> ' + esc(o) + '</div>' : ''; })() + '</div>';
   }).join('');
   h += '<p class="intro">' + full.length + ' van ' + ps.length + ' plekken hebben twee cijfers.</p>';
   $('#view').innerHTML = h; window.scrollTo(0, 0);
+  var ts = $('#toShare'); if (ts) ts.addEventListener('click', function () { GOTO_SHARE = true; });
 }
 
 /* ---------- Kaart ---------- */
@@ -517,11 +615,27 @@ function villaView() {
     '<li><b>Thuis</b> = ' + esc(DATA.thuis.label) + '. ' + (DATA.thuis.aanname ? 'Er was geen adres bekend; de ritten vanaf thuis gaan uit van Oudenaarde.' : '') + '</li>' +
     '<li>Ritten zijn benaderingen via OpenStreetMap (OSRM), zonder verkeer, pauzes of tol. Vanaf Hyères = centrum Hyères.</li>' +
     '<li>Prijzen komen uit Kimberly\'s sheet en zijn mogelijk voor 2 volwassenen; Ellie nog toevoegen op Booking.</li>' +
-    '<li>Je cijfers staan enkel in de browser van dit toestel. Wissel ze uit met de knoppen hieronder.</li>' +
+    '<li>Je cijfers staan in de browser van dit toestel. Deel ze met een link of een bestandje onder Cijfers delen.</li>' +
     '<li>Bron: ' + esc(DATA.bron) + ' · bijgewerkt ' + esc(DATA.gemaakt) + '.</li></ul></div>';
-  h += '<div class="section"><h3>Cijfers delen</h3><p class="intro" style="margin-top:0">Exporteer je cijfers naar een bestandje en stuur het naar de ander, die het hier importeert. Bestaande cijfers worden samengevoegd (de nieuwste wint).</p><div class="row2"><button class="btn" type="button" id="exp">Exporteer</button><button class="btn ghost" type="button" id="imp">Importeer</button></div><input type="file" id="file" accept="application/json,.json" hidden><p class="status" id="ist"></p>' +
+  h += '<div class="section" id="delen"><h3>Cijfers delen</h3><p class="intro" style="margin-top:0">Stuur de ander een link met jouw cijfers en notities. Wie hem opent en inlogt, ziet ze meteen in de rangschikking. De link bevat geen wachtwoord.</p>' +
+    '<button class="btn" type="button" id="shareLink">Deel mijn cijfers via link</button><input class="field" id="shareUrl" type="text" readonly hidden aria-label="Deellink"><p class="status" id="sst"></p>' +
+    '<p class="intro" style="margin:14px 0 8px">Of via een bestandje: exporteer en laat de ander het hier importeren. Bestaande cijfers worden samengevoegd (de nieuwste wint).</p><div class="row2"><button class="btn" type="button" id="exp">Exporteer</button><button class="btn ghost" type="button" id="imp">Importeer</button></div><input type="file" id="file" accept="application/json,.json" hidden><p class="status" id="ist"></p>' +
     '<button type="button" class="linkbtn" id="forget">Wachtwoord vergeten op dit toestel</button></div></div>';
   $('#view').innerHTML = h; window.scrollTo(0, 0);
+  if (GOTO_SHARE) { GOTO_SHARE = false; var dl = $('#delen'); if (dl) dl.scrollIntoView({ block: 'start' }); }
+  $('#shareUrl').addEventListener('focus', function (e) { e.target.select(); });
+  $('#shareLink').addEventListener('click', function () {
+    var r = makeShare(), f = $('#shareUrl'), st = $('#sst');
+    if (!r.n) { f.hidden = true; st.textContent = 'Je hebt nog geen cijfers of notities gegeven.'; st.className = 'status bad'; return; }
+    f.value = r.url; f.hidden = false;
+    var msg = 'Link met ' + r.n + (r.n === 1 ? ' plek' : ' plekken') + ' van ' + ME + '.';
+    function done(ok) { st.textContent = msg + (ok ? ' Gekopieerd naar het klembord.' : ' Kopieer de link hierboven.'); st.className = 'status ok'; if (!ok) { f.focus(); f.select(); } }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(r.url).then(function () { done(true); }, function () { done(fallbackCopy(f)); });
+      else done(fallbackCopy(f));
+    } catch (e) { done(fallbackCopy(f)); }
+    if (navigator.share) { try { navigator.share({ title: 'Cijfers Familieweek 2027', text: 'Mijn cijfers voor de Familieweek (' + ME + '). Open de link en log in met ons wachtwoord.', url: r.url }).catch(function () {}); } catch (e) {} }
+  });
   $('#exp').addEventListener('click', function () {
     var blob = new Blob([JSON.stringify({ app: 'vakantie2027', v: 1, votes: loadVotes() }, null, 1)], { type: 'application/json' });
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cijfers-' + ME.toLowerCase() + '-' + new Date().toISOString().slice(0, 10) + '.json'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
@@ -552,6 +666,7 @@ function villaView() {
 function route() {
   if (!DATA || $('#app').hidden) return;
   var h = location.hash, m;
+  if ((m = h.match(/^#cijfers=(.*)$/))) return takeShare(m[1]);
   if ((m = h.match(/^#\/plek\/(.+)$/))) return detailView(decodeURIComponent(m[1]));
   if (h === '#/kaart') return mapView();
   if (h === '#/rang') return rankView();
